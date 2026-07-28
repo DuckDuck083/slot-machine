@@ -17,6 +17,11 @@
 
     <section class="machine" aria-label="Slot machine">
       <div class="top-light" aria-hidden="true"></div>
+      <div class="marquee" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="corner-screw screw-left" aria-hidden="true"></div>
+      <div class="corner-screw screw-right" aria-hidden="true"></div>
 
       <div class="stats">
         <div class="stat">
@@ -30,6 +35,8 @@
       </div>
 
       <div class="reel-window">
+        <span class="payline-label left" aria-hidden="true">WIN</span>
+        <span class="payline-label right" aria-hidden="true">WIN</span>
         <div class="payline" aria-hidden="true"></div>
         <div class="reels" aria-label="Slot reels" aria-live="off">
           <div class="reel" data-reel="0"><span>⭐</span></div>
@@ -40,6 +47,11 @@
 
       <div id="message" class="message" role="status" aria-live="polite">
         Choose your bet and spin!
+      </div>
+
+      <div class="difficulty-note">
+        <span class="live-dot"></span>
+        High-stakes reels · Sevens are ultra rare
       </div>
 
       <div class="controls">
@@ -55,7 +67,7 @@
 
         <button id="spin-button" class="spin-button" type="button">
           <span>Spin</span>
-          <small>Good luck!</small>
+          <small>Press space</small>
         </button>
       </div>
 
@@ -68,6 +80,7 @@
           <span>Three 7️⃣ sevens</span><strong>25× JACKPOT</strong>
         </div>
       </details>
+      <div id="win-particles" class="win-particles" aria-hidden="true"></div>
     </section>
 
     <footer>Progress saves automatically on this device.</footer>

@@ -4,8 +4,9 @@
 const STARTING_CREDITS = 1000;
 const DEFAULT_BET = 25;
 const STORAGE_KEY = "golden-fortune-slots";
-const SYMBOLS = ["🍒", "🍋", "🔔", "💎", "⭐", "7️⃣"];
-const SYMBOL_WEIGHTS = [24, 22, 18, 15, 13, 8];
+const SYMBOLS = ["🍒", "🍋", "🍊", "🍇", "🍀", "🔔", "🃏", "💎", "⭐", "7️⃣"];
+// Premium symbols are intentionally scarce for a tougher, high-stakes game.
+const SYMBOL_WEIGHTS = [14, 14, 14, 13, 12, 10, 9, 7, 4, 1];
 
 const creditsElement = document.querySelector("#credits");
 const currentBetElement = document.querySelector("#current-bet");
@@ -14,6 +15,7 @@ const spinButton = document.querySelector("#spin-button");
 const betButtons = [...document.querySelectorAll(".bet-button")];
 const reels = [...document.querySelectorAll(".reel")];
 const machine = document.querySelector(".machine");
+const particleContainer = document.querySelector("#win-particles");
 
 let credits = STARTING_CREDITS;
 let currentBet = DEFAULT_BET;
@@ -109,9 +111,16 @@ function calculatePayout(results) {
 
 function stopReel(reel, symbol, delay) {
   return new Promise((resolve) => {
+    // Cycle visible symbols while the reel is moving for a more convincing spin.
+    const symbolElement = reel.querySelector("span");
+    const ticker = setInterval(() => {
+      symbolElement.textContent = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    }, 90);
+
     setTimeout(() => {
+      clearInterval(ticker);
       reel.classList.remove("spinning");
-      reel.querySelector("span").textContent = symbol;
+      symbolElement.textContent = symbol;
       reel.classList.add("stopping");
 
       setTimeout(() => {
@@ -120,6 +129,25 @@ function stopReel(reel, symbol, delay) {
       }, 300);
     }, delay);
   });
+}
+
+function celebrate(isJackpot) {
+  const colors = ["#f5c451", "#ffe59a", "#d83b43", "#fff8de"];
+  const count = isJackpot ? 55 : 22;
+  particleContainer.replaceChildren();
+
+  for (let index = 0; index < count; index += 1) {
+    const particle = document.createElement("i");
+    particle.className = "particle";
+    particle.style.left = `${Math.random() * 100}%`;
+    particle.style.setProperty("--particle-color", colors[index % colors.length]);
+    particle.style.setProperty("--fall-time", `${1.1 + Math.random() * 1.2}s`);
+    particle.style.setProperty("--drift", `${-50 + Math.random() * 100}px`);
+    particle.style.animationDelay = `${Math.random() * 0.35}s`;
+    particleContainer.append(particle);
+  }
+
+  setTimeout(() => particleContainer.replaceChildren(), 2800);
 }
 
 async function spin() {
@@ -150,6 +178,7 @@ async function spin() {
   if (winnings > 0) {
     credits += winnings;
     showMessage(`${payout.label} — you won ${formatMoney(winnings)}!`, payout.jackpot ? "jackpot" : "win");
+    celebrate(payout.jackpot);
     if (payout.multiplier >= 10) machine.classList.add("big-win");
   } else {
     showMessage(`No match — ${formatMoney(currentBet)} lost. Try again!`);
@@ -183,6 +212,14 @@ betButtons.forEach((button) => {
 });
 
 spinButton.addEventListener("click", spin);
+
+// Keyboard play makes repeat spins quick while still respecting the game lock.
+document.addEventListener("keydown", (event) => {
+  if (event.code === "Space" && !event.repeat) {
+    event.preventDefault();
+    spin();
+  }
+});
 
 loadProgress();
 updateDisplay();
