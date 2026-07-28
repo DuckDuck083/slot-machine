@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080a0f">
+  <title>Golden Fortune Slots</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell" aria-labelledby="game-title">
+    <header class="game-header">
+      <p class="eyebrow">Lucky Star Casino</p>
+      <h1 id="game-title"><span>Golden</span> Fortune</h1>
+      <p class="subtitle">Match the reels. Chase the sevens.</p>
+    </header>
+
+    <section class="machine" aria-label="Slot machine">
+      <div class="top-light" aria-hidden="true"></div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">Credits</span>
+          <strong id="credits">$1,000</strong>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Current bet</span>
+          <strong id="current-bet">$25</strong>
+        </div>
+      </div>
+
+      <div class="reel-window">
+        <div class="payline" aria-hidden="true"></div>
+        <div class="reels" aria-label="Slot reels" aria-live="off">
+          <div class="reel" data-reel="0"><span>⭐</span></div>
+          <div class="reel" data-reel="1"><span>7️⃣</span></div>
+          <div class="reel" data-reel="2"><span>💎</span></div>
+        </div>
+      </div>
+
+      <div id="message" class="message" role="status" aria-live="polite">
+        Choose your bet and spin!
+      </div>
+
+      <div class="controls">
+        <fieldset class="bet-controls">
+          <legend>Place your bet</legend>
+          <div class="bet-options">
+            <button class="bet-button" type="button" data-bet="10">$10</button>
+            <button class="bet-button active" type="button" data-bet="25">$25</button>
+            <button class="bet-button" type="button" data-bet="50">$50</button>
+            <button class="bet-button" type="button" data-bet="100">$100</button>
+          </div>
+        </fieldset>
+
+        <button id="spin-button" class="spin-button" type="button">
+          <span>Spin</span>
+          <small>Good luck!</small>
+        </button>
+      </div>
+
+      <details class="payouts">
+        <summary>View payout table</summary>
+        <div class="payout-grid">
+          <span>Two matching symbols</span><strong>2× bet</strong>
+          <span>Three matching symbols</span><strong>5× bet</strong>
+          <span>Three ⭐ stars</span><strong>10× bet</strong>
+          <span>Three 7️⃣ sevens</span><strong>25× JACKPOT</strong>
+        </div>
+      </details>
+    </section>
+
+    <footer>Progress saves automatically on this device.</footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
