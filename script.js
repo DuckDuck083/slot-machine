@@ -37,16 +37,17 @@ const achievements = [
   {id:"veteran",icon:"🏆",name:"Casino Veteran",desc:"Reach level 10",stat:"level",goal:10,reward:1500},
   {id:"collector",icon:"🛍",name:"Collector",desc:"Own 5 boutique items",stat:"inventory",goal:5,reward:750}
 ];
-let state = load(), slotBet = 25, busy = false, autoTimer = null, rouletteChoice = null, rouletteHistory = [], deck = [], player = [], dealer = [], blackjackWager = 25;
+let state = load(), slotBet = 25, slotBusy = false, rouletteBusy = false, blackjackActive = false, autoTimer = null, rouletteChoice = null, rouletteHistory = [], deck = [], player = [], dealer = [], blackjackWager = 25;
 const $ = (q) => document.querySelector(q), $$ = (q) => [...document.querySelectorAll(q)];
 const fmt = n => Math.round(n).toLocaleString("en-US");
 
 function load() {
+  const fresh = () => JSON.parse(JSON.stringify(defaults));
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (!saved) return structuredClone(defaults);
-    return {...structuredClone(defaults), ...saved, equipped:{...defaults.equipped,...saved.equipped}, upgrades:{...defaults.upgrades,...saved.upgrades}, stats:{...defaults.stats,...saved.stats}};
-  } catch { return structuredClone(defaults); }
+    if (!saved) return fresh();
+    return {...fresh(), ...saved, equipped:{...defaults.equipped,...saved.equipped}, upgrades:{...defaults.upgrades,...saved.upgrades}, stats:{...defaults.stats,...saved.stats}};
+  } catch { return fresh(); }
 }
 function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(state)); }catch{} }
 function toast(text){ const el=$("#toast"); el.textContent=text; el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),2600); }
@@ -78,8 +79,9 @@ function randomSymbol(){
   let r=Math.random()*adjusted.reduce((a,b)=>a+b,0); for(let i=0;i<symbols.length;i++){r-=adjusted[i];if(r<0)return symbols[i];} return symbols[0];
 }
 async function spin(){
-  if(busy||state.credits<slotBet){$("#slot-message").textContent="Not enough credits for that spin.";stopAuto();return;}
-  busy=true; state.credits-=slotBet; state.jackpot+=Math.ceil(slotBet*.03); renderHeader(); save(); $("#slot-message").textContent="Reels spinning…";
+  if(slotBusy)return;
+  if(state.credits<slotBet){$("#slot-message").textContent=`You need ${fmt(slotBet)} credits for that spin.`;stopAuto();return;}
+  slotBusy=true; state.credits-=slotBet; state.jackpot+=Math.ceil(slotBet*.03); renderHeader(); save(); $("#slot-message").textContent="Reels spinning…";
   const result=$$(".reel").map(()=>randomSymbol()), delay=Math.max(330,850-state.upgrades.speed*150);
   $$(".reel").forEach(r=>r.classList.add("spinning"));
   await new Promise(resolve=>setTimeout(resolve,delay));
@@ -88,7 +90,7 @@ async function spin(){
   let win=Math.round(slotBet*mult*(1+state.upgrades.payout*.05));
   if(all&&result[0]==="7️⃣"){win+=state.jackpot;state.stats.jackpots++;state.jackpot=5000;celebrate();}
   $("#slot-message").textContent=win?`${all&&result[0]==="7️⃣"?"JACKPOT! ":""}You won ${fmt(win)} credits!`:"No match — try again.";
-  busy=false; record("slots",slotBet,win); if(autoTimer)autoTimer=setTimeout(spin,450);
+  slotBusy=false; record("slots",slotBet,win); if(autoTimer)autoTimer=setTimeout(spin,450);
 }
 function stopAuto(){clearTimeout(autoTimer);autoTimer=null;$("#auto-status").textContent="Off";$("#auto-spin").classList.remove("active");}
 function celebrate(){document.body.classList.add("celebrate");setTimeout(()=>document.body.classList.remove("celebrate"),1200);}
@@ -99,11 +101,12 @@ function setupRoulette(){
   $$("#number-grid button,#outside-bets button").forEach(b=>b.onclick=()=>{rouletteChoice=b.dataset.choice;$$(".number-grid button,.outside-bets button").forEach(x=>x.classList.toggle("selected",x===b));});
 }
 function rouletteSpin(){
-  if(busy||rouletteChoice===null)return toast("Choose a roulette bet first.");
+  if(rouletteBusy)return;
+  if(rouletteChoice===null)return toast("Choose a roulette bet first.");
   const wager=Number($("#roulette-wager").value);if(state.credits<wager)return toast("Not enough credits.");
-  busy=true;state.credits-=wager;renderHeader();$("#wheel").classList.add("rolling");$("#roulette-message").textContent="No more bets…";
+  rouletteBusy=true;state.credits-=wager;renderHeader();$("#wheel").classList.add("rolling");$("#roulette-message").textContent="No more bets…";
   setTimeout(()=>{const n=Math.floor(Math.random()*37),color=n===0?"green":redNums.has(n)?"red":"black";let mult=0;if(String(n)===rouletteChoice)mult=36;else if(rouletteChoice===color)mult=2;else if(n&&rouletteChoice==="even"&&n%2===0)mult=2;else if(n&&rouletteChoice==="odd"&&n%2)mult=2;else if(rouletteChoice==="low"&&n>=1&&n<=18)mult=2;else if(rouletteChoice==="high"&&n>=19)mult=2;
-    const win=Math.round(wager*mult*(1+state.upgrades.payout*.05));$("#wheel").classList.remove("rolling");$("#wheel-number").textContent=n;rouletteHistory.unshift({n,color});rouletteHistory=rouletteHistory.slice(0,7);$("#roulette-history").innerHTML=rouletteHistory.map(x=>`<i class="${x.color}">${x.n}</i>`).join("");$("#roulette-message").textContent=win?`${n} ${color} — won ${fmt(win)}!`:`${n} ${color} — better luck next spin.`;busy=false;record("roulette",wager,win);},1150);
+    const win=Math.round(wager*mult*(1+state.upgrades.payout*.05));$("#wheel").classList.remove("rolling");$("#wheel-number").textContent=n;rouletteHistory.unshift({n,color});rouletteHistory=rouletteHistory.slice(0,7);$("#roulette-history").innerHTML=rouletteHistory.map(x=>`<i class="${x.color}">${x.n}</i>`).join("");$("#roulette-message").textContent=win?`${n} ${color} — won ${fmt(win)}!`:`${n} ${color} — better luck next spin.`;rouletteBusy=false;record("roulette",wager,win);},1150);
 }
 
 function freshDeck(){const suits=["♠","♥","♦","♣"],ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];return suits.flatMap(s=>ranks.map(r=>({r,s}))).sort(()=>Math.random()-.5);}
@@ -111,13 +114,13 @@ function handValue(hand){let v=hand.reduce((a,c)=>a+(c.r==="A"?11:["J","Q","K"].
 function cardHtml(c){return `<i class="card ${["♥","♦"].includes(c.s)?"red-card":""}"><b>${c.r}</b><span>${c.s}</span></i>`;}
 function drawHands(hide=false){$("#player-cards").innerHTML=player.map(cardHtml).join("");$("#dealer-cards").innerHTML=dealer.map((c,i)=>hide&&i===1?'<i class="card back">★</i>':cardHtml(c)).join("");$("#player-score").textContent=handValue(player);$("#dealer-score").textContent=hide?"":handValue(dealer);}
 function deal(){
-  blackjackWager=Number($("#blackjack-wager").value);if(busy||state.credits<blackjackWager)return toast("Not enough credits.");
-  state.credits-=blackjackWager;busy=true;deck=freshDeck();player=[deck.pop(),deck.pop()];dealer=[deck.pop(),deck.pop()];drawHands(true);renderHeader();$("#deal-button").disabled=true;$("#hit-button").disabled=false;$("#stand-button").disabled=false;$("#blackjack-message").textContent="Hit or stand?";
+  blackjackWager=Number($("#blackjack-wager").value);if(blackjackActive)return;if(state.credits<blackjackWager)return toast("Not enough credits.");
+  state.credits-=blackjackWager;blackjackActive=true;deck=freshDeck();player=[deck.pop(),deck.pop()];dealer=[deck.pop(),deck.pop()];drawHands(true);renderHeader();$("#deal-button").disabled=true;$("#hit-button").disabled=false;$("#stand-button").disabled=false;$("#blackjack-message").textContent="Hit or stand?";
   if(handValue(player)===21)finishBlackjack();
 }
-function hit(){if(!busy)return;player.push(deck.pop());drawHands(true);if(handValue(player)>=21)finishBlackjack();}
+function hit(){if(!blackjackActive)return;player.push(deck.pop());drawHands(true);if(handValue(player)>=21)finishBlackjack();}
 function finishBlackjack(){
-  if(!busy)return;while(handValue(player)<=21&&handValue(dealer)<17)dealer.push(deck.pop());const p=handValue(player),d=handValue(dealer);let mult=p>21?0:d>21||p>d?(p===21&&player.length===2?2.5:2):p===d?1:0;const win=Math.round(blackjackWager*mult*(1+state.upgrades.payout*.05));drawHands();$("#blackjack-message").textContent=p>21?`Bust at ${p}.`:win>blackjackWager?`You win ${fmt(win)} credits!`:win===blackjackWager?"Push — wager returned.":`Dealer wins with ${d}.`;busy=false;$("#deal-button").disabled=false;$("#hit-button").disabled=true;$("#stand-button").disabled=true;record("blackjack",blackjackWager,win);
+  if(!blackjackActive)return;while(handValue(player)<=21&&handValue(dealer)<17)dealer.push(deck.pop());const p=handValue(player),d=handValue(dealer);let mult=p>21?0:d>21||p>d?(p===21&&player.length===2?2.5:2):p===d?1:0;const win=Math.round(blackjackWager*mult*(1+state.upgrades.payout*.05));drawHands();$("#blackjack-message").textContent=p>21?`Bust at ${p}.`:win>blackjackWager?`You win ${fmt(win)} credits!`:win===blackjackWager?"Push — wager returned.":`Dealer wins with ${d}.`;blackjackActive=false;$("#deal-button").disabled=false;$("#hit-button").disabled=true;$("#stand-button").disabled=true;record("blackjack",blackjackWager,win);
 }
 
 function renderShop(filter="all"){
