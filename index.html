@@ -2,90 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080a0f">
-  <title>Golden Fortune Slots</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b12">
+  <title>Lucky Star Casino</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="game-shell" aria-labelledby="game-title">
-    <header class="game-header">
-      <p class="eyebrow">Lucky Star Casino</p>
-      <h1 id="game-title"><span>Golden</span> Fortune</h1>
-      <p class="subtitle">Match the reels. Chase the sevens.</p>
-    </header>
+  <header class="topbar">
+    <div class="brand"><span>★</span><div><b>Lucky Star</b><small>Casino Club</small></div></div>
+    <div class="wallet"><span>Credits</span><strong id="credits">1,000</strong></div>
+    <div class="level-box">
+      <div><b id="level">Level 1</b><span id="xp-label">0 / 100 XP</span></div>
+      <div class="progress"><i id="xp-bar"></i></div>
+    </div>
+    <button class="icon-btn" id="sound-toggle" aria-label="Toggle sound">🔊</button>
+  </header>
 
-    <section class="machine" aria-label="Slot machine">
-      <div class="top-light" aria-hidden="true"></div>
-      <div class="marquee" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  <div class="app">
+    <aside class="sidebar">
+      <nav aria-label="Casino games">
+        <p>Play</p>
+        <button class="nav-btn active" data-view="slots"><span>🎰</span> Slots</button>
+        <button class="nav-btn" data-view="roulette"><span>🎯</span> Roulette</button>
+        <button class="nav-btn" data-view="blackjack"><span>♠</span> Blackjack</button>
+        <p>Progress</p>
+        <button class="nav-btn" data-view="shop"><span>🛍</span> Shop <em id="shop-badge"></em></button>
+        <button class="nav-btn" data-view="quests"><span>📜</span> Quests <em id="quest-badge"></em></button>
+        <button class="nav-btn" data-view="achievements"><span>🏆</span> Achievements</button>
+        <button class="nav-btn" data-view="profile"><span>📊</span> My Club</button>
+      </nav>
+      <div class="daily-card">
+        <span>Daily reward</span>
+        <b id="daily-streak">Day 1 streak</b>
+        <button id="daily-claim">Claim reward</button>
+        <small id="daily-note">Come back every day for more</small>
       </div>
-      <div class="corner-screw screw-left" aria-hidden="true"></div>
-      <div class="corner-screw screw-right" aria-hidden="true"></div>
+    </aside>
 
-      <div class="stats">
-        <div class="stat">
-          <span class="stat-label">Credits</span>
-          <strong id="credits">$1,000</strong>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Current bet</span>
-          <strong id="current-bet">$25</strong>
-        </div>
-      </div>
-
-      <div class="reel-window">
-        <span class="payline-label left" aria-hidden="true">WIN</span>
-        <span class="payline-label right" aria-hidden="true">WIN</span>
-        <div class="payline" aria-hidden="true"></div>
-        <div class="reels" aria-label="Slot reels" aria-live="off">
-          <div class="reel" data-reel="0"><span>⭐</span></div>
-          <div class="reel" data-reel="1"><span>7️⃣</span></div>
-          <div class="reel" data-reel="2"><span>💎</span></div>
-        </div>
-      </div>
-
-      <div id="message" class="message" role="status" aria-live="polite">
-        Choose your bet and spin!
-      </div>
-
-      <div class="difficulty-note">
-        <span class="live-dot"></span>
-        High-stakes reels · Sevens are ultra rare
-      </div>
-
-      <div class="controls">
-        <fieldset class="bet-controls">
-          <legend>Place your bet</legend>
-          <div class="bet-options">
-            <button class="bet-button" type="button" data-bet="10">$10</button>
-            <button class="bet-button active" type="button" data-bet="25">$25</button>
-            <button class="bet-button" type="button" data-bet="50">$50</button>
-            <button class="bet-button" type="button" data-bet="100">$100</button>
+    <main class="content">
+      <section class="view active" id="slots-view">
+        <div class="view-heading"><div><span class="kicker">Golden Fortune</span><h1>Chase the jackpot.</h1><p>Match symbols, earn XP, and climb the club.</p></div><div class="jackpot">Progressive jackpot <b id="jackpot">5,000</b></div></div>
+        <div class="machine">
+          <div class="machine-top"><span id="slot-theme-name">Classic Gold</span><b>JACKPOT</b><span>Payline ×1</span></div>
+          <div class="reels">
+            <div class="reel"><span>🍒</span></div><div class="reel"><span>⭐</span></div><div class="reel"><span>💎</span></div>
           </div>
-        </fieldset>
-
-        <button id="spin-button" class="spin-button" type="button">
-          <span>Spin</span>
-          <small>Press space</small>
-        </button>
-      </div>
-
-      <details class="payouts">
-        <summary>View payout table</summary>
-        <div class="payout-grid">
-          <span>Two matching symbols</span><strong>2× bet</strong>
-          <span>Three matching symbols</span><strong>5× bet</strong>
-          <span>Three ⭐ stars</span><strong>10× bet</strong>
-          <span>Three 7️⃣ sevens</span><strong>25× JACKPOT</strong>
+          <div class="game-message" id="slot-message">Pick a bet and spin.</div>
+          <div class="game-controls">
+            <div><label>Bet</label><div class="bet-row" id="slot-bets"><button data-bet="10">10</button><button class="active" data-bet="25">25</button><button data-bet="50">50</button><button data-bet="100">100</button></div></div>
+            <button class="primary spin" id="spin-button">SPIN <small>Space</small></button>
+            <button class="secondary auto" id="auto-spin">Auto <span id="auto-status">Off</span></button>
+          </div>
+          <details><summary>View paytable</summary><p>Pair 2× · Triple 5× · Triple stars 10× · Triple sevens 25×</p></details>
         </div>
-      </details>
-      <div id="win-particles" class="win-particles" aria-hidden="true"></div>
-    </section>
+      </section>
 
-    <footer>Progress saves automatically on this device.</footer>
-  </main>
+      <section class="view" id="roulette-view">
+        <div class="view-heading"><div><span class="kicker">European Roulette</span><h1>Place your bets.</h1><p>Choose a number or an outside bet. Green zero pays 35×.</p></div></div>
+        <div class="table-card">
+          <div class="roulette-stage"><div class="wheel" id="wheel"><div><b id="wheel-number">★</b></div></div><div class="result-stack"><span>Last results</span><div id="roulette-history">—</div></div></div>
+          <div class="number-grid" id="number-grid"></div>
+          <div class="outside-bets" id="outside-bets"><button data-choice="red">Red 1:1</button><button data-choice="black">Black 1:1</button><button data-choice="even">Even 1:1</button><button data-choice="odd">Odd 1:1</button><button data-choice="low">1–18</button><button data-choice="high">19–36</button></div>
+          <div class="game-message" id="roulette-message">Select a bet, then spin the wheel.</div>
+          <div class="inline-controls"><label>Wager <select id="roulette-wager"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></label><button class="primary" id="roulette-spin">Spin wheel</button></div>
+        </div>
+      </section>
 
+      <section class="view" id="blackjack-view">
+        <div class="view-heading"><div><span class="kicker">Blackjack</span><h1>Beat the dealer.</h1><p>Blackjack pays 3:2. Dealer stands on 17.</p></div></div>
+        <div class="table-card felt">
+          <div class="hand"><div><span>Dealer</span><b id="dealer-score"></b></div><div class="cards" id="dealer-cards"><i class="card back">★</i></div></div>
+          <div class="game-message" id="blackjack-message">Place your wager to deal.</div>
+          <div class="hand"><div><span>Your hand</span><b id="player-score"></b></div><div class="cards" id="player-cards"></div></div>
+          <div class="inline-controls"><label>Wager <select id="blackjack-wager"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></label><button class="primary" id="deal-button">Deal</button><button class="secondary" id="hit-button" disabled>Hit</button><button class="secondary" id="stand-button" disabled>Stand</button></div>
+        </div>
+      </section>
+
+      <section class="view" id="shop-view">
+        <div class="view-heading"><div><span class="kicker">Club Boutique</span><h1>Make it yours.</h1><p>Cosmetics are collectible. Upgrades permanently improve every run.</p></div></div>
+        <div class="filter-row" id="shop-filters"><button class="active" data-filter="all">All</button><button data-filter="theme">Themes</button><button data-filter="reel">Reels</button><button data-filter="sound">Sounds</button><button data-filter="charm">Charms</button><button data-filter="upgrade">Upgrades</button></div>
+        <div class="card-grid" id="shop-grid"></div>
+      </section>
+
+      <section class="view" id="quests-view">
+        <div class="view-heading"><div><span class="kicker">Quest Board</span><h1>Today’s challenges.</h1><p>Daily quests reset each day. Claim completed rewards.</p></div></div>
+        <div class="stack-list" id="quest-list"></div>
+      </section>
+
+      <section class="view" id="achievements-view">
+        <div class="view-heading"><div><span class="kicker">Trophy Room</span><h1>Your legacy.</h1><p>Permanent milestones with one-time rewards.</p></div></div>
+        <div class="card-grid achievements" id="achievement-grid"></div>
+      </section>
+
+      <section class="view" id="profile-view">
+        <div class="view-heading"><div><span class="kicker">My Club</span><h1 id="profile-title">Rising Player</h1><p>Your lifetime casino story, saved on this device.</p></div></div>
+        <div class="milestone-card"><div><span>Next milestone</span><b id="milestone-name"></b><small id="milestone-copy"></small></div><div class="progress"><i id="milestone-bar"></i></div></div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="danger-zone"><div><b>Local save</b><span>Progress is saved automatically in this browser.</span></div><button id="reset-save">Reset progress</button></div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
   <script src="script.js"></script>
 </body>
 </html>
