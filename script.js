@@ -7,7 +7,7 @@ const defaults = {
   inventory: ["classic"], equipped: { theme: "classic", reel: "standard", sound: "bells", charm: null },
   upgrades: { speed: 0, payout: 0, jackpot: 0, auto: 0 }, sound: true, daily: { last: "", streak: 0 },
   quests: { date: "", claimed: [], base: {} }, achievements: [], milestone: 0,
-  stats: { plays: 0, wins: 0, wagered: 0, won: 0, jackpots: 0, slots: 0, roulette: 0, blackjack: 0, lottery: 0, bestWin: 0 },
+  stats: { plays: 0, wins: 0, wagered: 0, won: 0, jackpots: 0, slots: 0, roulette: 0, blackjack: 0, baccarat: 0, plinko: 0, prizewheel: 0, russian: 0, lottery: 0, bestWin: 0 },
   history: []
 };
 const items = [
@@ -38,6 +38,8 @@ const achievements = [
   {id:"collector",icon:"🛍",name:"Collector",desc:"Own 5 boutique items",stat:"inventory",goal:5,reward:750}
 ];
 let state = load(), slotBet = 25, slotBusy = false, rouletteBusy = false, blackjackActive = false, autoTimer = null, rouletteChoice = null, rouletteHistory = [], deck = [], player = [], dealer = [], blackjackWager = 25;
+let baccaratChoice=null, baccaratBusy=false, plinkoBusy=false, prizewheelBusy=false, russianBusy=false;
+const WAGERS=[10,25,50,100,500,1000,5000,10000,50000,100000,500000,1000000];
 const DEBT_LIMIT = 5000;
 const $ = (q) => document.querySelector(q), $$ = (q) => [...document.querySelectorAll(q)];
 const fmt = n => Math.round(n).toLocaleString("en-US");
@@ -132,6 +134,23 @@ function finishBlackjack(){
   if(!blackjackActive)return;while(handValue(player)<=21&&handValue(dealer)<17)dealer.push(deck.pop());const p=handValue(player),d=handValue(dealer);let mult=p>21?0:d>21||p>d?(p===21&&player.length===2?2.5:2):p===d?1:0;const win=Math.round(blackjackWager*mult*(1+state.upgrades.payout*.05));drawHands();$("#blackjack-message").textContent=p>21?`Bust at ${p}.`:win>blackjackWager?`You win ${fmt(win)} credits!`:win===blackjackWager?"Push — wager returned.":`Dealer wins with ${d}.`;blackjackActive=false;$("#deal-button").disabled=false;$("#hit-button").disabled=true;$("#stand-button").disabled=true;record("blackjack",blackjackWager,win);
 }
 
+function baccaratValue(cards){return cards.reduce((sum,c)=>sum+(c.r==="A"?1:["10","J","Q","K"].includes(c.r)?0:Number(c.r)),0)%10;}
+function dealBaccarat(){
+  if(baccaratBusy)return;if(!baccaratChoice)return toast("Choose Player, Banker, or Tie first.");const wager=Number($("#baccarat-wager").value);if(!canPay(wager))return;
+  baccaratBusy=true;state.credits-=wager;renderHeader();const d=freshDeck(),p=[d.pop(),d.pop()],b=[d.pop(),d.pop()];if(baccaratValue(p)<=5)p.push(d.pop());if(baccaratValue(b)<=5)b.push(d.pop());
+  $("#baccarat-player").innerHTML=p.map(cardHtml).join("");$("#baccarat-banker").innerHTML=b.map(cardHtml).join("");const pv=baccaratValue(p),bv=baccaratValue(b),result=pv===bv?"tie":pv>bv?"player":"banker";$("#baccarat-player-score").textContent=pv;$("#baccarat-banker-score").textContent=bv;
+  const mult=baccaratChoice===result?(result==="tie"?9:result==="banker"?1.95:2):0,win=Math.round(wager*mult*(1+state.upgrades.payout*.05));$("#baccarat-message").textContent=`${result[0].toUpperCase()+result.slice(1)} wins ${pv}–${bv}${win?` · You won ${fmt(win)}!`:"."}`;baccaratBusy=false;record("baccarat",wager,win);
+}
+
+const plinkoMultipliers=[5,2,.5,0,.5,2,5];
+function setupPlinko(){$("#plinko-pegs").innerHTML=Array.from({length:36},()=>"<i></i>").join("");$("#plinko-slots").innerHTML=plinkoMultipliers.map(x=>`<b>${x}×</b>`).join("");}
+function dropPlinko(){if(plinkoBusy)return;const wager=Number($("#plinko-wager").value);if(!canPay(wager))return;plinkoBusy=true;state.credits-=wager;renderHeader();const index=Math.floor(Math.random()*plinkoMultipliers.length),mult=plinkoMultipliers[index],chip=$("#plinko-chip");chip.style.setProperty("--landing",`${(index-3)*48}px`);chip.classList.remove("dropping");void chip.offsetWidth;chip.classList.add("dropping");$("#plinko-message").textContent="Chip dropping…";setTimeout(()=>{const win=Math.round(wager*mult*(1+state.upgrades.payout*.05));$("#plinko-message").textContent=`Landed on ${mult}×${win?` · You won ${fmt(win)}!`:" · No payout."}`;plinkoBusy=false;record("plinko",wager,win);},1200);}
+
+const wheelMultipliers=[0,.5,1,2,0,3,1,10];
+function spinPrizeWheel(){if(prizewheelBusy)return;const wager=Number($("#prizewheel-wager").value);if(!canPay(wager))return;prizewheelBusy=true;state.credits-=wager;renderHeader();const index=Math.floor(Math.random()*8),mult=wheelMultipliers[index],wheel=$("#prize-wheel"),turns=5+Math.floor(Math.random()*3),degrees=turns*360-index*45;wheel.style.transform=`rotate(${degrees}deg)`;$("#prizewheel-message").textContent="Wheel spinning…";setTimeout(()=>{const win=Math.round(wager*mult*(1+state.upgrades.payout*.05));$("#prizewheel-message").textContent=`The wheel landed on ${mult}×${win?` · You won ${fmt(win)}!`:" · No prize."}`;prizewheelBusy=false;record("prizewheel",wager,win);},2200);}
+
+function playRussian(){if(russianBusy)return;const wager=Number($("#russian-wager").value);if(!canPay(wager))return;russianBusy=true;state.credits-=wager;renderHeader();const chamber=$("#chamber");chamber.classList.add("spinning");$("#russian-message").textContent="The chamber spins…";setTimeout(()=>{const safe=Math.random()>=1/6,win=safe?Math.round(wager*1.18*(1+state.upgrades.payout*.05)):0;chamber.classList.remove("spinning");chamber.classList.toggle("bang",!safe);$("#russian-message").textContent=safe?`Click — safe. You won ${fmt(win)} credits!`:"Bang — the house takes the wager.";setTimeout(()=>chamber.classList.remove("bang"),650);russianBusy=false;record("russian",wager,win);},1100);}
+
 const lotteryTickets=[
   {id:"match",name:"Triple Match",icon:"🍀",price:25,tag:"Scratch & match",desc:"Reveal three symbols. A pair pays 2×; three of a kind pays 8×."},
   {id:"multiplier",name:"Multiplier Mania",icon:"⚡",price:50,tag:"Boost your prize",desc:"Reveal a base prize, then flip a random multiplier from 1× to 10×."},
@@ -166,14 +185,17 @@ function questProgress(q){return Math.max(0,state.stats[q.stat]-(state.quests.ba
 function renderQuests(){ensureDaily();$("#quest-list").innerHTML=quests.map(q=>{const value=Math.min(questProgress(q),q.goal),done=value>=q.goal,claimed=state.quests.claimed.includes(q.id);return `<article class="quest"><div class="quest-icon">${done?"✓":"◆"}</div><div><span>Daily quest</span><h3>${q.name}</h3><p>${q.desc}</p><div class="progress"><i style="width:${value/q.goal*100}%"></i></div><small>${fmt(value)} / ${fmt(q.goal)}</small></div><button data-quest="${q.id}" ${!done||claimed?"disabled":""}>${claimed?"Claimed":`Claim ${fmt(q.reward)}`}</button></article>`;}).join("");$$("[data-quest]").forEach(b=>b.onclick=()=>claimQuest(b.dataset.quest));}
 function claimQuest(id){const q=quests.find(x=>x.id===id);state.quests.claimed.push(id);state.credits+=q.reward;addXp(q.xp);toast(`Quest complete! +${fmt(q.reward)} and ${q.xp} XP`);save();renderAll();renderQuests();}
 function renderAchievements(){checkAchievements();$("#achievement-grid").innerHTML=achievements.map(a=>{const unlocked=state.achievements.includes(a.id),value=a.stat==="level"?state.level:a.stat==="inventory"?state.inventory.length:state.stats[a.stat];return `<article class="achievement ${unlocked?"unlocked":""}"><div class="item-icon">${unlocked?a.icon:"🔒"}</div><span>${unlocked?"Unlocked":"Locked"}</span><h3>${a.name}</h3><p>${a.desc}</p><small>${Math.min(value,a.goal)} / ${a.goal} · Reward ${fmt(a.reward)}</small></article>`;}).join("");}
-function renderProfile(){const marks=[25,100,250,500,1000],names=["Getting Started","Casino Regular","High Roller","VIP Legend","Casino Royalty"],next=marks[state.milestone];$("#profile-title").textContent=state.level>=10?"Casino Veteran":state.level>=5?"Club Regular":"Rising Player";$("#milestone-name").textContent=next?names[state.milestone]:"All milestones complete";$("#milestone-copy").textContent=next?`${state.stats.plays} / ${next} total games`:"You conquered the club.";$("#milestone-bar").style.width=next?`${Math.min(100,state.stats.plays/next*100)}%`:"100%";const data=[["Games played",state.stats.plays],["Games won",state.stats.wins],["Win rate",state.stats.plays?`${Math.round(state.stats.wins/state.stats.plays*100)}%`:"0%"],["Credits wagered",fmt(state.stats.wagered)],["Credits won",fmt(state.stats.won)],["Best win",fmt(state.stats.bestWin)],["Slot spins",state.stats.slots],["Roulette spins",state.stats.roulette],["Blackjack hands",state.stats.blackjack]];$("#stats-grid").innerHTML=data.map(x=>`<div><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");}
+function renderProfile(){const marks=[25,100,250,500,1000],names=["Getting Started","Casino Regular","High Roller","VIP Legend","Casino Royalty"],next=marks[state.milestone];$("#profile-title").textContent=state.level>=10?"Casino Veteran":state.level>=5?"Club Regular":"Rising Player";$("#milestone-name").textContent=next?names[state.milestone]:"All milestones complete";$("#milestone-copy").textContent=next?`${state.stats.plays} / ${next} total games`:"You conquered the club.";$("#milestone-bar").style.width=next?`${Math.min(100,state.stats.plays/next*100)}%`:"100%";const data=[["Games played",state.stats.plays],["Games won",state.stats.wins],["Win rate",state.stats.plays?`${Math.round(state.stats.wins/state.stats.plays*100)}%`:"0%"],["Credits wagered",fmt(state.stats.wagered)],["Credits won",fmt(state.stats.won)],["Best win",fmt(state.stats.bestWin)],["Slot spins",state.stats.slots],["Roulette spins",state.stats.roulette],["Blackjack hands",state.stats.blackjack],["Baccarat hands",state.stats.baccarat],["Plinko drops",state.stats.plinko],["Prize wheel spins",state.stats.prizewheel],["Russian roulette",state.stats.russian]];$("#stats-grid").innerHTML=data.map(x=>`<div><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");}
 function renderDaily(){const claimed=state.daily.last===today();$("#daily-claim").disabled=claimed;$("#daily-claim").textContent=claimed?"Claimed ✓":"Claim reward";$("#daily-streak").textContent=`Day ${Math.max(1,state.daily.streak)} streak`;$("#daily-note").textContent=claimed?"Next reward tomorrow":"Up to 1,000 credits";}
 function renderAll(){renderHeader();renderDaily();$("#shop-badge").textContent=state.level>=3?"New":"";ensureDaily();const ready=quests.filter(q=>questProgress(q)>=q.goal&&!state.quests.claimed.includes(q.id)).length;$("#quest-badge").textContent=ready||"";if(state.gameOver)$("#gameover").classList.add("open");}
 
 $$(".nav-btn").forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+$$(".high-wager").forEach(s=>s.innerHTML=WAGERS.map(v=>`<option value="${v}" ${v===25?"selected":""}>${fmt(v)}</option>`).join(""));
 $$("#slot-bets button").forEach(b=>b.onclick=()=>{slotBet=Number(b.dataset.bet);$$("#slot-bets button").forEach(x=>x.classList.toggle("active",x===b));});
 $("#spin-button").onclick=spin;$("#auto-spin").onclick=()=>{if(!state.upgrades.auto)return toast("Unlock Auto-Spin in the shop.");if(autoTimer)stopAuto();else{$("#auto-status").textContent="On";$("#auto-spin").classList.add("active");autoTimer=setTimeout(spin,100);}};
 $("#roulette-spin").onclick=rouletteSpin;$("#deal-button").onclick=deal;$("#hit-button").onclick=hit;$("#stand-button").onclick=finishBlackjack;
+$$("#baccarat-choice button").forEach(b=>b.onclick=()=>{baccaratChoice=b.dataset.choice;$$("#baccarat-choice button").forEach(x=>x.classList.toggle("selected",x===b));});
+$("#baccarat-deal").onclick=dealBaccarat;$("#plinko-drop").onclick=dropPlinko;$("#prizewheel-spin").onclick=spinPrizeWheel;$("#russian-fire").onclick=playRussian;
 $("#sound-toggle").onclick=()=>{state.sound=!state.sound;save();renderHeader();};
 $("#open-cashier").onclick=openCashier;$("#close-cashier").onclick=closeCashier;$("#cashier-modal").onclick=e=>{if(e.target===$("#cashier-modal"))closeCashier();};$("#borrow-500").onclick=borrow;$("#repay-500").onclick=repay;
 $("#new-run").onclick=()=>{localStorage.removeItem(SAVE_KEY);location.reload();};
@@ -182,4 +204,4 @@ $$("#shop-filters button").forEach(b=>b.onclick=()=>{$$("#shop-filters button").
 $("#reset-save").onclick=()=>{if(confirm("Reset all credits, levels, unlocks, and statistics? This cannot be undone.")){localStorage.removeItem(SAVE_KEY);location.reload();}};
 document.addEventListener("keydown",e=>{if(e.code==="Space"&&!e.repeat&&$("#slots-view").classList.contains("active")){e.preventDefault();spin();}});
 $("#blackjack-view .view-heading p").textContent="A = 1 · Number cards use face value · J = 11 · Q = 12 · K = 13 · No jokers.";
-setupRoulette();renderAll();renderShop();renderLottery();renderQuests();
+setupRoulette();setupPlinko();renderAll();renderShop();renderLottery();renderQuests();

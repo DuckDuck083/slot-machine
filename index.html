@@ -25,6 +25,10 @@
         <button class="nav-btn active" data-view="slots"><span>🎰</span> Slots</button>
         <button class="nav-btn" data-view="roulette"><span>🎯</span> Roulette</button>
         <button class="nav-btn" data-view="blackjack"><span>♠</span> Blackjack</button>
+        <button class="nav-btn" data-view="baccarat"><span>🂱</span> Baccarat</button>
+        <button class="nav-btn" data-view="plinko"><span>🔻</span> Plinko</button>
+        <button class="nav-btn" data-view="prizewheel"><span>🎡</span> Prize Wheel</button>
+        <button class="nav-btn" data-view="russian"><span>🔫</span> Russian Roulette</button>
         <button class="nav-btn" data-view="lottery"><span>🎟</span> Lottery</button>
         <p>Progress</p>
         <button class="nav-btn" data-view="shop"><span>🛍</span> Shop <em id="shop-badge"></em></button>
@@ -50,7 +54,7 @@
           </div>
           <div class="game-message" id="slot-message">Pick a bet and spin.</div>
           <div class="game-controls">
-            <div><label>Bet</label><div class="bet-row" id="slot-bets"><button data-bet="10">10</button><button class="active" data-bet="25">25</button><button data-bet="50">50</button><button data-bet="100">100</button></div></div>
+            <div><label>Bet</label><div class="bet-row" id="slot-bets"><button data-bet="10">10</button><button class="active" data-bet="25">25</button><button data-bet="100">100</button><button data-bet="1000">1K</button><button data-bet="10000">10K</button><button data-bet="100000">100K</button><button data-bet="1000000">1M</button></div></div>
             <button class="primary spin" id="spin-button">SPIN <small>Space</small></button>
             <button class="secondary auto" id="auto-spin">Auto <span id="auto-status">Off</span></button>
           </div>
@@ -65,7 +69,7 @@
           <div class="number-grid" id="number-grid"></div>
           <div class="outside-bets" id="outside-bets"><button data-choice="red">Red 1:1</button><button data-choice="black">Black 1:1</button><button data-choice="even">Even 1:1</button><button data-choice="odd">Odd 1:1</button><button data-choice="low">1–18</button><button data-choice="high">19–36</button></div>
           <div class="game-message" id="roulette-message">Select a bet, then spin the wheel.</div>
-          <div class="inline-controls"><label>Wager <select id="roulette-wager"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></label><button class="primary" id="roulette-spin">Spin wheel</button></div>
+          <div class="inline-controls"><label>Wager <select id="roulette-wager" class="high-wager"></select></label><button class="primary" id="roulette-spin">Spin wheel</button></div>
         </div>
       </section>
 
@@ -75,8 +79,28 @@
           <div class="hand"><div><span>Dealer</span><b id="dealer-score"></b></div><div class="cards" id="dealer-cards"><i class="card back">★</i></div></div>
           <div class="game-message" id="blackjack-message">Place your wager to deal.</div>
           <div class="hand"><div><span>Your hand</span><b id="player-score"></b></div><div class="cards" id="player-cards"></div></div>
-          <div class="inline-controls"><label>Wager <select id="blackjack-wager"><option>10</option><option selected>25</option><option>50</option><option>100</option></select></label><button class="primary" id="deal-button">Deal</button><button class="secondary" id="hit-button" disabled>Hit</button><button class="secondary" id="stand-button" disabled>Stand</button></div>
+          <div class="inline-controls"><label>Wager <select id="blackjack-wager" class="high-wager"></select></label><button class="primary" id="deal-button">Deal</button><button class="secondary" id="hit-button" disabled>Hit</button><button class="secondary" id="stand-button" disabled>Stand</button></div>
         </div>
+      </section>
+
+      <section class="view" id="baccarat-view">
+        <div class="view-heading"><div><span class="kicker">Punto Banco</span><h1>Baccarat.</h1><p>Bet Player, Banker, or Tie. Closest to nine wins.</p></div></div>
+        <div class="table-card felt"><div class="versus-table"><div><span>Player</span><b id="baccarat-player-score">—</b><div class="cards" id="baccarat-player"></div></div><strong>VS</strong><div><span>Banker</span><b id="baccarat-banker-score">—</b><div class="cards" id="baccarat-banker"></div></div></div><div class="choice-row" id="baccarat-choice"><button data-choice="player">Player · 2×</button><button data-choice="banker">Banker · 1.95×</button><button data-choice="tie">Tie · 9×</button></div><div class="game-message" id="baccarat-message">Choose a side and deal.</div><div class="inline-controls"><label>Wager <select id="baccarat-wager" class="high-wager"></select></label><button class="primary" id="baccarat-deal">Deal cards</button></div></div>
+      </section>
+
+      <section class="view" id="plinko-view">
+        <div class="view-heading"><div><span class="kicker">Lucky Drop</span><h1>Plinko.</h1><p>Drop a chip through the pegs and land on a multiplier.</p></div></div>
+        <div class="table-card"><div class="plinko-board" id="plinko-board"><i id="plinko-chip"></i><div class="pegs" id="plinko-pegs"></div><div class="plinko-slots" id="plinko-slots"></div></div><div class="game-message" id="plinko-message">Pick a wager and drop the chip.</div><div class="inline-controls"><label>Wager <select id="plinko-wager" class="high-wager"></select></label><button class="primary" id="plinko-drop">Drop chip</button></div></div>
+      </section>
+
+      <section class="view" id="prizewheel-view">
+        <div class="view-heading"><div><span class="kicker">Lucky Eight</span><h1>Prize Wheel.</h1><p>Spin for multipliers from zero to the glittering 10× jackpot.</p></div></div>
+        <div class="table-card wheel-game"><div class="prize-pointer">▼</div><div class="prize-wheel" id="prize-wheel"><b>LUCKY<br>STAR</b></div><div class="game-message" id="prizewheel-message">The wheel is ready.</div><div class="inline-controls"><label>Wager <select id="prizewheel-wager" class="high-wager"></select></label><button class="primary" id="prizewheel-spin">Spin for a prize</button></div></div>
+      </section>
+
+      <section class="view" id="russian-view">
+        <div class="view-heading"><div><span class="kicker">One in Six</span><h1>Russian Roulette.</h1><p>A stylized game of chance: five safe chambers pay 1.18×. One loses the wager.</p></div></div>
+        <div class="table-card danger-table"><div class="chamber" id="chamber"><div>●</div><div>●</div><div>●</div><div>●</div><div>●</div><div class="loaded">●</div></div><div class="game-message" id="russian-message">Spin the chamber when you’re ready.</div><div class="inline-controls"><label>Wager <select id="russian-wager" class="high-wager"></select></label><button class="primary danger-button" id="russian-fire">Spin &amp; fire</button></div></div>
       </section>
 
       <section class="view" id="lottery-view">
