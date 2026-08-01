@@ -10,7 +10,7 @@
 <body>
   <header class="topbar">
     <div class="brand"><span>★</span><div><b>Lucky Star</b><small>Casino Club</small></div></div>
-    <div class="wallet"><span>Credits</span><strong id="credits">1,000</strong></div>
+    <div class="money-hud"><div class="wallet"><span>Credits</span><strong id="credits">1,000</strong></div><button class="debt-pill" id="open-cashier"><span>Debt</span><b id="debt">0</b></button></div>
     <div class="level-box">
       <div><b id="level">Level 1</b><span id="xp-label">0 / 100 XP</span></div>
       <div class="progress"><i id="xp-bar"></i></div>
@@ -25,6 +25,7 @@
         <button class="nav-btn active" data-view="slots"><span>🎰</span> Slots</button>
         <button class="nav-btn" data-view="roulette"><span>🎯</span> Roulette</button>
         <button class="nav-btn" data-view="blackjack"><span>♠</span> Blackjack</button>
+        <button class="nav-btn" data-view="lottery"><span>🎟</span> Lottery</button>
         <p>Progress</p>
         <button class="nav-btn" data-view="shop"><span>🛍</span> Shop <em id="shop-badge"></em></button>
         <button class="nav-btn" data-view="quests"><span>📜</span> Quests <em id="quest-badge"></em></button>
@@ -78,9 +79,16 @@
         </div>
       </section>
 
+      <section class="view" id="lottery-view">
+        <div class="view-heading"><div><span class="kicker">Instant Win Arcade</span><h1>Pick a ticket.</h1><p>Four games, four gimmicks. Buy, reveal, and chase the top prize.</p></div><div class="lottery-stat"><span>Tickets played</span><b id="ticket-count">0</b></div></div>
+        <div class="ticket-grid" id="ticket-grid"></div>
+        <div class="ticket-stage" id="ticket-stage"><div class="empty-ticket"><span>🎟</span><h2>Your ticket appears here</h2><p>Choose a game above to get started.</p></div></div>
+      </section>
+
       <section class="view" id="shop-view">
         <div class="view-heading"><div><span class="kicker">Club Boutique</span><h1>Make it yours.</h1><p>Cosmetics are collectible. Upgrades permanently improve every run.</p></div></div>
         <div class="filter-row" id="shop-filters"><button class="active" data-filter="all">All</button><button data-filter="theme">Themes</button><button data-filter="reel">Reels</button><button data-filter="sound">Sounds</button><button data-filter="charm">Charms</button><button data-filter="upgrade">Upgrades</button></div>
+        <div class="shop-hero"><div><span>Member market</span><h2>Tonight's collection</h2><p>Every purchase is permanent. Swap owned cosmetics for free at any time.</p></div><div class="shop-balance"><span>Available to spend</span><b id="shop-balance">0</b><small id="owned-count">0 items owned</small></div></div>
         <div class="card-grid" id="shop-grid"></div>
       </section>
 
@@ -103,6 +111,8 @@
     </main>
   </div>
   <div class="toast" id="toast" role="status"></div>
+  <div class="modal" id="cashier-modal" aria-hidden="true"><div class="cashier-card"><button class="modal-close" id="close-cashier">×</button><span class="kicker">Casino Cashier</span><h2>Credit line</h2><p>Borrow to keep playing, but reaching <b>5,000 debt ends the run.</b></p><div class="debt-meter"><div><span>Current debt</span><b id="cashier-debt">0 / 5,000</b></div><div class="progress"><i id="debt-bar"></i></div></div><div class="cashier-actions"><button class="primary" id="borrow-500">Borrow 500</button><button class="secondary" id="repay-500">Repay up to 500</button></div><small>Loans have no interest. Repay them from your available credits.</small></div></div>
+  <div class="gameover" id="gameover"><div><span>💸</span><p>Credit line closed</p><h2>Too deep in debt.</h2><p>You reached 5,000 debt. This casino run is over.</p><button class="primary" id="new-run">Start a new run</button></div></div>
   <script src="script.js"></script>
 </body>
 </html>
